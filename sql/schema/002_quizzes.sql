@@ -5,6 +5,7 @@ CREATE TABLE quizzes(
     updated_at TEXT NOT NULL,
     title TEXT NOT NULL,
     user_id TEXT NOT NULL,
+    path TEXT NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 

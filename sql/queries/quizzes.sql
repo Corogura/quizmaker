@@ -1,6 +1,7 @@
 -- name: CreateQuiz :exec
-INSERT INTO quizzes (id, created_at, updated_at, title, user_id)
+INSERT INTO quizzes (id, created_at, updated_at, title, user_id, path)
 VALUES (
+    ?,
     ?,
     ?,
     ?,
