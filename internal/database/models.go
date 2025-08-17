@@ -10,6 +10,7 @@ type Quiz struct {
 	UpdatedAt string
 	Title     string
 	UserID    string
+	Path      string
 }
 
 type QuizQuestion struct {

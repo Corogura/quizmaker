@@ -1,9 +1,15 @@
 package main
 
 import (
+	"context"
 	"database/sql"
+	"fmt"
+	"log"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/Corogura/quizmaker/internal/database"
 	"github.com/gin-gonic/gin"
@@ -13,7 +19,8 @@ import (
 )
 
 type apiConfig struct {
-	db *database.Queries
+	db        *database.Queries
+	jwtSecret string
 }
 
 func main() {
@@ -22,7 +29,8 @@ func main() {
 		panic("Error loading .env file")
 	}
 
-	port := os.Getenv("PORT")
+	jwtSecret := os.Getenv("JWT_SECRET")
+	port := fmt.Sprintf(":%s", os.Getenv("PORT"))
 	if port == "" {
 		port = ":8080" // Default port if not set
 	}
@@ -34,9 +42,11 @@ func main() {
 	if err != nil {
 		panic("Failed to connect to database: " + err.Error())
 	}
+	defer db.Close()
 	dbQueries := database.New(db)
 	cfg := apiConfig{
-		db: dbQueries,
+		db:        dbQueries,
+		jwtSecret: jwtSecret,
 	}
 	r := gin.Default()
 	r.GET("/test", func(c *gin.Context) {
@@ -45,5 +55,27 @@ func main() {
 		})
 	})
 	r.POST("/users", cfg.handlerUsersCreate)
-	r.Run()
+	r.GET("/users/login", cfg.handlerUsersLogin)
+
+	srv := &http.Server{
+		Addr:    port,
+		Handler: r,
+	}
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("ListenAndServe(): %s", err)
+		}
+	}()
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
+	<-quit
+	log.Println("Shutting down server...")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Fatal("Server forced to shutdown:", err)
+	}
+	log.Println("Server exiting gracefully")
 }
