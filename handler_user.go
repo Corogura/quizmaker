@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"net/http"
 	"time"
 
@@ -60,17 +61,72 @@ func (cfg *apiConfig) handlerUsersLogin(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
 		return
 	}
-	token, err := auth.MakeJWT(uuid.MustParse(user.ID), cfg.jwtSecret, 720*time.Hour)
+	token, err := auth.MakeJWT(uuid.MustParse(user.ID), cfg.jwtSecret, 24*time.Hour)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Couldn't create token"})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{
-		"id":         user.ID,
-		"email":      user.Email,
-		"created_at": user.CreatedAt,
-		"updated_at": user.UpdatedAt,
-		"token":      token,
-		"expires_in": 720 * time.Hour,
+	rt, _ := auth.MakeRefreshToken()
+	rToken, err := cfg.db.CreateRefreshToken(c.Request.Context(), database.CreateRefreshTokenParams{
+		Token:     rt,
+		UserID:    user.ID,
+		CreatedAt: time.Now().UTC().Format(time.RFC3339),
+		ExpiresAt: time.Now().UTC().Add(720 * time.Hour).Format(time.RFC3339),
 	})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Couldn't create refresh token"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"id":            user.ID,
+		"email":         user.Email,
+		"created_at":    user.CreatedAt,
+		"updated_at":    user.UpdatedAt,
+		"token":         token,
+		"refresh_token": rToken.Token,
+		"expires_in":    720 * time.Hour,
+	})
+}
+
+func (cfg *apiConfig) handlerRefreshJWT(c *gin.Context) {
+	tokenString, err := auth.GetBearerToken(c.Request.Header)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+		return
+	}
+	dbUser, err := cfg.db.GetUserFromRefreshToken(c.Request.Context(), tokenString)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid refresh token"})
+		return
+	}
+	accessToken, err := auth.MakeJWT(uuid.MustParse(dbUser.ID), cfg.jwtSecret, 24*time.Hour)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Couldn't create access token"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"token":      accessToken,
+		"expires_in": 24 * time.Hour,
+	})
+}
+
+func (cfg *apiConfig) handlerRevokeRefreshToken(c *gin.Context) {
+	tokenString, err := auth.GetBearerToken(c.Request.Header)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+		return
+	}
+	err = cfg.db.RevokeRefreshToken(c.Request.Context(), database.RevokeRefreshTokenParams{
+		Token:     tokenString,
+		UpdatedAt: time.Now().UTC().Format(time.RFC3339),
+		RevokedAt: sql.NullString{
+			String: time.Now().UTC().Format(time.RFC3339),
+			Valid:  true,
+		},
+	})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Couldn't revoke refresh token"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Refresh token revoked successfully"})
 }

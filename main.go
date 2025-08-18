@@ -49,6 +49,7 @@ func main() {
 		jwtSecret: jwtSecret,
 	}
 	r := gin.Default()
+	// ---------- Register routes ----------
 	r.GET("/test", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"test": "test",
@@ -56,6 +57,9 @@ func main() {
 	})
 	r.POST("/users", cfg.handlerUsersCreate)
 	r.GET("/users/login", cfg.handlerUsersLogin)
+	r.POST("/api/refresh", cfg.handlerRefreshJWT)
+	r.POST("/api/revoke", cfg.handlerRevokeRefreshToken)
+	// ---------- End of routes ----------
 
 	srv := &http.Server{
 		Addr:    port,

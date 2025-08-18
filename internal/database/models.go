@@ -4,6 +4,10 @@
 
 package database
 
+import (
+	"database/sql"
+)
+
 type Quiz struct {
 	ID        string
 	CreatedAt string
@@ -18,6 +22,15 @@ type QuizQuestion struct {
 	QuizID       string
 	QuestionText string
 	Choices      string
+}
+
+type RefreshToken struct {
+	Token     string
+	CreatedAt string
+	UpdatedAt string
+	UserID    string
+	ExpiresAt string
+	RevokedAt sql.NullString
 }
 
 type User struct {

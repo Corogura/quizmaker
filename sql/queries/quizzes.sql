@@ -9,6 +9,7 @@ VALUES (
     ?
 );
 
+-- name: CreateQuizQuestions :exec
 INSERT INTO quiz_questions (id, quiz_id, question_text, choices)
 VALUES (
     ?,

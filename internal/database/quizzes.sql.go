@@ -42,6 +42,33 @@ func (q *Queries) CreateQuiz(ctx context.Context, arg CreateQuizParams) error {
 	return err
 }
 
+const createQuizQuestions = `-- name: CreateQuizQuestions :exec
+INSERT INTO quiz_questions (id, quiz_id, question_text, choices)
+VALUES (
+    ?,
+    ?,
+    ?,
+    ?
+)
+`
+
+type CreateQuizQuestionsParams struct {
+	ID           string
+	QuizID       string
+	QuestionText string
+	Choices      string
+}
+
+func (q *Queries) CreateQuizQuestions(ctx context.Context, arg CreateQuizQuestionsParams) error {
+	_, err := q.db.ExecContext(ctx, createQuizQuestions,
+		arg.ID,
+		arg.QuizID,
+		arg.QuestionText,
+		arg.Choices,
+	)
+	return err
+}
+
 const getQuiz = `-- name: GetQuiz :one
 SELECT quizzes.id, created_at, updated_at, title, user_id, path, quiz_questions.id, quiz_id, question_text, choices FROM quizzes JOIN quiz_questions ON quizzes.id = quiz_questions.quiz_id
 WHERE quizzes.id = ?
