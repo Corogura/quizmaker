@@ -71,6 +71,7 @@ func (cfg *apiConfig) handlerUsersLogin(c *gin.Context) {
 		Token:     rt,
 		UserID:    user.ID,
 		CreatedAt: time.Now().UTC().Format(time.RFC3339),
+		UpdatedAt: time.Now().UTC().Format(time.RFC3339),
 		ExpiresAt: time.Now().UTC().Add(720 * time.Hour).Format(time.RFC3339),
 	})
 	if err != nil {
