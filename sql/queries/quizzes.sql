@@ -10,8 +10,12 @@ VALUES (
 );
 
 -- name: CreateQuizQuestions :exec
-INSERT INTO quiz_questions (id, quiz_id, question_text, choices)
+INSERT INTO quiz_questions (id, quiz_id, question_text, choice1, choice2, choice3, choice4, answer)
 VALUES (
+    ?,
+    ?,
+    ?,
+    ?,
     ?,
     ?,
     ?,

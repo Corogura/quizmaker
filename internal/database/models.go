@@ -21,7 +21,11 @@ type QuizQuestion struct {
 	ID           string
 	QuizID       string
 	QuestionText string
-	Choices      string
+	Choice1      string
+	Choice2      string
+	Choice3      string
+	Choice4      string
+	Answer       int64
 }
 
 type RefreshToken struct {

@@ -43,8 +43,12 @@ func (q *Queries) CreateQuiz(ctx context.Context, arg CreateQuizParams) error {
 }
 
 const createQuizQuestions = `-- name: CreateQuizQuestions :exec
-INSERT INTO quiz_questions (id, quiz_id, question_text, choices)
+INSERT INTO quiz_questions (id, quiz_id, question_text, choice1, choice2, choice3, choice4, answer)
 VALUES (
+    ?,
+    ?,
+    ?,
+    ?,
     ?,
     ?,
     ?,
@@ -56,7 +60,11 @@ type CreateQuizQuestionsParams struct {
 	ID           string
 	QuizID       string
 	QuestionText string
-	Choices      string
+	Choice1      string
+	Choice2      string
+	Choice3      string
+	Choice4      string
+	Answer       int64
 }
 
 func (q *Queries) CreateQuizQuestions(ctx context.Context, arg CreateQuizQuestionsParams) error {
@@ -64,13 +72,17 @@ func (q *Queries) CreateQuizQuestions(ctx context.Context, arg CreateQuizQuestio
 		arg.ID,
 		arg.QuizID,
 		arg.QuestionText,
-		arg.Choices,
+		arg.Choice1,
+		arg.Choice2,
+		arg.Choice3,
+		arg.Choice4,
+		arg.Answer,
 	)
 	return err
 }
 
 const getQuiz = `-- name: GetQuiz :one
-SELECT quizzes.id, created_at, updated_at, title, user_id, path, quiz_questions.id, quiz_id, question_text, choices FROM quizzes JOIN quiz_questions ON quizzes.id = quiz_questions.quiz_id
+SELECT quizzes.id, created_at, updated_at, title, user_id, path, quiz_questions.id, quiz_id, question_text, choice1, choice2, choice3, choice4, answer FROM quizzes JOIN quiz_questions ON quizzes.id = quiz_questions.quiz_id
 WHERE quizzes.id = ?
 `
 
@@ -84,7 +96,11 @@ type GetQuizRow struct {
 	ID_2         string
 	QuizID       string
 	QuestionText string
-	Choices      string
+	Choice1      string
+	Choice2      string
+	Choice3      string
+	Choice4      string
+	Answer       int64
 }
 
 func (q *Queries) GetQuiz(ctx context.Context, id string) (GetQuizRow, error) {
@@ -100,7 +116,11 @@ func (q *Queries) GetQuiz(ctx context.Context, id string) (GetQuizRow, error) {
 		&i.ID_2,
 		&i.QuizID,
 		&i.QuestionText,
-		&i.Choices,
+		&i.Choice1,
+		&i.Choice2,
+		&i.Choice3,
+		&i.Choice4,
+		&i.Answer,
 	)
 	return i, err
 }
