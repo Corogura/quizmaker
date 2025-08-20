@@ -12,13 +12,7 @@ import (
 
 func (cfg *apiConfig) handlerQuizzesCreate(c *gin.Context) {
 	type parameters struct {
-		Title        string `json:"title"`
-		QuestionText string `json:"question_text"`
-		Choice1      string `json:"choice1"`
-		Choice2      string `json:"choice2"`
-		Choice3      string `json:"choice3"`
-		Choice4      string `json:"choice4"`
-		Answer       int64  `json:"answer"`
+		Title string `json:"title"`
 	}
 	bearer, err := auth.GetBearerToken(c.Request.Header)
 	if err != nil {
@@ -49,10 +43,51 @@ func (cfg *apiConfig) handlerQuizzesCreate(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Couldn't create quiz"})
 		return
 	}
+	c.JSON(http.StatusCreated, gin.H{"quiz_id": quizID, "path": path})
+}
+
+func (cfg *apiConfig) handlerQuestionsCreate(c *gin.Context) {
+	path := c.Param("path")
+	if path == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Path is required"})
+		return
+	}
+	quiz, err := cfg.db.GetQuizIDFromPath(c.Request.Context(), path)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Quiz not found"})
+		return
+	}
+	bearer, err := auth.GetBearerToken(c.Request.Header)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid Authorization header"})
+		return
+	}
+	userID, err := auth.ValidateJWT(bearer, cfg.jwtSecret)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+		return
+	}
+	if quiz.UserID != userID.String() {
+		c.JSON(http.StatusForbidden, gin.H{"error": "You do not have permission to add questions to this quiz"})
+		return
+	}
+	type parameters struct {
+		Question string `json:"question"`
+		Choice1  string `json:"choice1"`
+		Choice2  string `json:"choice2"`
+		Choice3  string `json:"choice3"`
+		Choice4  string `json:"choice4"`
+		Answer   int64  `json:"answer"`
+	}
+	var params parameters
+	if err := c.ShouldBindJSON(&params); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Couldn't decode parameters"})
+		return
+	}
 	err = cfg.db.CreateQuizQuestions(c.Request.Context(), database.CreateQuizQuestionsParams{
 		ID:           uuid.New().String(),
-		QuizID:       quizID,
-		QuestionText: params.QuestionText,
+		QuizID:       quiz.ID,
+		QuestionText: params.Question,
 		Choice1:      params.Choice1,
 		Choice2:      params.Choice2,
 		Choice3:      params.Choice3,
@@ -60,8 +95,8 @@ func (cfg *apiConfig) handlerQuizzesCreate(c *gin.Context) {
 		Answer:       params.Answer,
 	})
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Couldn't create quiz questions"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Couldn't create question"})
 		return
 	}
-	c.JSON(http.StatusCreated, gin.H{"quiz_id": quizID, "path": path})
+	c.JSON(http.StatusCreated, gin.H{"message": "Question created successfully"})
 }

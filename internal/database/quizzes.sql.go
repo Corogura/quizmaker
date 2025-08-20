@@ -124,3 +124,19 @@ func (q *Queries) GetQuiz(ctx context.Context, id string) (GetQuizRow, error) {
 	)
 	return i, err
 }
+
+const getQuizIDFromPath = `-- name: GetQuizIDFromPath :one
+SELECT id, user_id FROM quizzes WHERE path = ?
+`
+
+type GetQuizIDFromPathRow struct {
+	ID     string
+	UserID string
+}
+
+func (q *Queries) GetQuizIDFromPath(ctx context.Context, path string) (GetQuizIDFromPathRow, error) {
+	row := q.db.QueryRowContext(ctx, getQuizIDFromPath, path)
+	var i GetQuizIDFromPathRow
+	err := row.Scan(&i.ID, &i.UserID)
+	return i, err
+}

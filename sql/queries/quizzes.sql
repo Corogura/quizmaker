@@ -25,3 +25,6 @@ VALUES (
 -- name: GetQuiz :one
 SELECT * FROM quizzes JOIN quiz_questions ON quizzes.id = quiz_questions.quiz_id
 WHERE quizzes.id = ?;
+
+-- name: GetQuizIDFromPath :one
+SELECT id, user_id FROM quizzes WHERE path = ?;

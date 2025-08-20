@@ -60,6 +60,7 @@ func main() {
 	r.POST("/api/refresh", cfg.handlerRefreshJWT)
 	r.POST("/api/revoke", cfg.handlerRevokeRefreshToken)
 	r.POST("/quizzes", cfg.handlerQuizzesCreate)
+	r.POST("/quizzes/:path", cfg.handlerQuestionsCreate)
 	// ---------- End of routes ----------
 
 	srv := &http.Server{
