@@ -16,3 +16,9 @@ SELECT * FROM users WHERE id = ?;
 -- name: GetUserByEmail :one
 SELECT * FROM users WHERE email = ?;
 --
+
+-- name: UpdatePassword :exec
+UPDATE users
+SET hashed_pw = ?, updated_at = ?
+WHERE id = ?;
+--

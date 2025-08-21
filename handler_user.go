@@ -131,3 +131,51 @@ func (cfg *apiConfig) handlerRevokeRefreshToken(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Refresh token revoked successfully"})
 }
+
+func (cfg *apiConfig) handlerUpdatePassword(c *gin.Context) {
+	type parameters struct {
+		CurrentPassword string `json:"current_password"`
+		NewPassword     string `json:"new_password"`
+	}
+	var params parameters
+	if err := c.ShouldBindJSON(&params); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Couldn't decode parameters"})
+		return
+	}
+	bearerToken, err := auth.GetBearerToken(c.Request.Header)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+		return
+	}
+	userID, err := auth.ValidateJWT(bearerToken, cfg.jwtSecret)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+	user, err := cfg.db.GetUser(c.Request.Context(), userID.String())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Couldn't find user"})
+		return
+	}
+	if err := auth.CheckPasswordHash(user.HashedPw, params.CurrentPassword); err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Current password is incorrect"})
+		return
+	}
+
+	hashedPassword, err := auth.HashPassword(params.NewPassword)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Couldn't hash password"})
+		return
+	}
+
+	err = cfg.db.UpdatePassword(c.Request.Context(), database.UpdatePasswordParams{
+		ID:        userID.String(),
+		HashedPw:  hashedPassword,
+		UpdatedAt: time.Now().UTC().Format(time.RFC3339),
+	})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Couldn't update password"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Password updated successfully"})
+}
