@@ -85,7 +85,7 @@ func (cfg *apiConfig) handlerUsersLogin(c *gin.Context) {
 		"updated_at":    user.UpdatedAt,
 		"token":         token,
 		"refresh_token": rToken.Token,
-		"expires_in":    720 * time.Hour,
+		"expires_in":    720 * 60 * 60, // 720 hours in seconds
 	})
 }
 
@@ -107,7 +107,7 @@ func (cfg *apiConfig) handlerRefreshJWT(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{
 		"token":      accessToken,
-		"expires_in": 24 * time.Hour,
+		"expires_in": 24 * 60 * 60, // 24 hours in seconds
 	})
 }
 
