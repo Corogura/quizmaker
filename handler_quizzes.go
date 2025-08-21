@@ -71,6 +71,11 @@ func (cfg *apiConfig) handlerQuestionsCreate(c *gin.Context) {
 		c.JSON(http.StatusForbidden, gin.H{"error": "You do not have permission to add questions to this quiz"})
 		return
 	}
+	questionCount, err := cfg.db.GetQuestionCountInQuiz(c.Request.Context(), quiz.ID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Couldn't retrieve question count"})
+		return
+	}
 	type parameters struct {
 		Question string `json:"question"`
 		Choice1  string `json:"choice1"`
@@ -85,14 +90,15 @@ func (cfg *apiConfig) handlerQuestionsCreate(c *gin.Context) {
 		return
 	}
 	err = cfg.db.CreateQuizQuestions(c.Request.Context(), database.CreateQuizQuestionsParams{
-		ID:           uuid.New().String(),
-		QuizID:       quiz.ID,
-		QuestionText: params.Question,
-		Choice1:      params.Choice1,
-		Choice2:      params.Choice2,
-		Choice3:      params.Choice3,
-		Choice4:      params.Choice4,
-		Answer:       params.Answer,
+		ID:             uuid.New().String(),
+		QuizID:         quiz.ID,
+		QuestionNumber: questionCount + 1, // Increment the question number
+		QuestionText:   params.Question,
+		Choice1:        params.Choice1,
+		Choice2:        params.Choice2,
+		Choice3:        params.Choice3,
+		Choice4:        params.Choice4,
+		Answer:         params.Answer,
 	})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Couldn't create question"})

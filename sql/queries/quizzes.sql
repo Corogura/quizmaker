@@ -10,8 +10,9 @@ VALUES (
 );
 
 -- name: CreateQuizQuestions :exec
-INSERT INTO quiz_questions (id, quiz_id, question_text, choice1, choice2, choice3, choice4, answer)
+INSERT INTO quiz_questions (id, quiz_id, question_number, question_text, choice1, choice2, choice3, choice4, answer)
 VALUES (
+    ?,
     ?,
     ?,
     ?,
@@ -28,3 +29,6 @@ WHERE quizzes.id = ?;
 
 -- name: GetQuizIDFromPath :one
 SELECT id, user_id FROM quizzes WHERE path = ?;
+
+-- name: GetQuestionCountInQuiz :one
+SELECT COUNT(*) AS question_count FROM quiz_questions WHERE quiz_id = ?;

@@ -50,11 +50,6 @@ func main() {
 	}
 	r := gin.Default()
 	// ---------- Register routes ----------
-	r.GET("/test", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"test": "test",
-		})
-	})
 	r.POST("/users", cfg.handlerUsersCreate)
 	r.GET("/users/login", cfg.handlerUsersLogin)
 	r.POST("/api/refresh", cfg.handlerRefreshJWT)

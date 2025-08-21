@@ -43,8 +43,9 @@ func (q *Queries) CreateQuiz(ctx context.Context, arg CreateQuizParams) error {
 }
 
 const createQuizQuestions = `-- name: CreateQuizQuestions :exec
-INSERT INTO quiz_questions (id, quiz_id, question_text, choice1, choice2, choice3, choice4, answer)
+INSERT INTO quiz_questions (id, quiz_id, question_number, question_text, choice1, choice2, choice3, choice4, answer)
 VALUES (
+    ?,
     ?,
     ?,
     ?,
@@ -57,20 +58,22 @@ VALUES (
 `
 
 type CreateQuizQuestionsParams struct {
-	ID           string
-	QuizID       string
-	QuestionText string
-	Choice1      string
-	Choice2      string
-	Choice3      string
-	Choice4      string
-	Answer       int64
+	ID             string
+	QuizID         string
+	QuestionNumber int64
+	QuestionText   string
+	Choice1        string
+	Choice2        string
+	Choice3        string
+	Choice4        string
+	Answer         int64
 }
 
 func (q *Queries) CreateQuizQuestions(ctx context.Context, arg CreateQuizQuestionsParams) error {
 	_, err := q.db.ExecContext(ctx, createQuizQuestions,
 		arg.ID,
 		arg.QuizID,
+		arg.QuestionNumber,
 		arg.QuestionText,
 		arg.Choice1,
 		arg.Choice2,
@@ -81,26 +84,38 @@ func (q *Queries) CreateQuizQuestions(ctx context.Context, arg CreateQuizQuestio
 	return err
 }
 
+const getQuestionCountInQuiz = `-- name: GetQuestionCountInQuiz :one
+SELECT COUNT(*) AS question_count FROM quiz_questions WHERE quiz_id = ?
+`
+
+func (q *Queries) GetQuestionCountInQuiz(ctx context.Context, quizID string) (int64, error) {
+	row := q.db.QueryRowContext(ctx, getQuestionCountInQuiz, quizID)
+	var question_count int64
+	err := row.Scan(&question_count)
+	return question_count, err
+}
+
 const getQuiz = `-- name: GetQuiz :one
-SELECT quizzes.id, created_at, updated_at, title, user_id, path, quiz_questions.id, quiz_id, question_text, choice1, choice2, choice3, choice4, answer FROM quizzes JOIN quiz_questions ON quizzes.id = quiz_questions.quiz_id
+SELECT quizzes.id, created_at, updated_at, title, user_id, path, quiz_questions.id, quiz_id, question_number, question_text, choice1, choice2, choice3, choice4, answer FROM quizzes JOIN quiz_questions ON quizzes.id = quiz_questions.quiz_id
 WHERE quizzes.id = ?
 `
 
 type GetQuizRow struct {
-	ID           string
-	CreatedAt    string
-	UpdatedAt    string
-	Title        string
-	UserID       string
-	Path         string
-	ID_2         string
-	QuizID       string
-	QuestionText string
-	Choice1      string
-	Choice2      string
-	Choice3      string
-	Choice4      string
-	Answer       int64
+	ID             string
+	CreatedAt      string
+	UpdatedAt      string
+	Title          string
+	UserID         string
+	Path           string
+	ID_2           string
+	QuizID         string
+	QuestionNumber int64
+	QuestionText   string
+	Choice1        string
+	Choice2        string
+	Choice3        string
+	Choice4        string
+	Answer         int64
 }
 
 func (q *Queries) GetQuiz(ctx context.Context, id string) (GetQuizRow, error) {
@@ -115,6 +130,7 @@ func (q *Queries) GetQuiz(ctx context.Context, id string) (GetQuizRow, error) {
 		&i.Path,
 		&i.ID_2,
 		&i.QuizID,
+		&i.QuestionNumber,
 		&i.QuestionText,
 		&i.Choice1,
 		&i.Choice2,

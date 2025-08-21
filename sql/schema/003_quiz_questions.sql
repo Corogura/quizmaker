@@ -2,6 +2,7 @@
 CREATE TABLE quiz_questions(
     id TEXT PRIMARY KEY,
     quiz_id TEXT NOT NULL,
+    question_number INTEGER NOT NULL,
     question_text TEXT NOT NULL,
     choice1 TEXT NOT NULL,
     choice2 TEXT NOT NULL,
