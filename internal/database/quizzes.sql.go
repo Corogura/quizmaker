@@ -7,6 +7,7 @@ package database
 
 import (
 	"context"
+	"database/sql"
 )
 
 const createQuiz = `-- name: CreateQuiz :exec
@@ -84,6 +85,20 @@ func (q *Queries) CreateQuizQuestions(ctx context.Context, arg CreateQuizQuestio
 	return err
 }
 
+const deleteQuiz = `-- name: DeleteQuiz :exec
+UPDATE quizzes SET deleted_at = ? WHERE id = ?
+`
+
+type DeleteQuizParams struct {
+	DeletedAt sql.NullString
+	ID        string
+}
+
+func (q *Queries) DeleteQuiz(ctx context.Context, arg DeleteQuizParams) error {
+	_, err := q.db.ExecContext(ctx, deleteQuiz, arg.DeletedAt, arg.ID)
+	return err
+}
+
 const getQuestionCountInQuiz = `-- name: GetQuestionCountInQuiz :one
 SELECT COUNT(*) AS question_count FROM quiz_questions WHERE quiz_id = ?
 `
@@ -96,7 +111,7 @@ func (q *Queries) GetQuestionCountInQuiz(ctx context.Context, quizID string) (in
 }
 
 const getQuiz = `-- name: GetQuiz :one
-SELECT quizzes.id, created_at, updated_at, title, user_id, path, quiz_questions.id, quiz_id, question_number, question_text, choice1, choice2, choice3, choice4, answer FROM quizzes JOIN quiz_questions ON quizzes.id = quiz_questions.quiz_id
+SELECT quizzes.id, created_at, updated_at, title, user_id, path, deleted_at, quiz_questions.id, quiz_id, question_number, question_text, choice1, choice2, choice3, choice4, answer FROM quizzes JOIN quiz_questions ON quizzes.id = quiz_questions.quiz_id
 WHERE quizzes.id = ?
 `
 
@@ -107,6 +122,7 @@ type GetQuizRow struct {
 	Title          string
 	UserID         string
 	Path           string
+	DeletedAt      sql.NullString
 	ID_2           string
 	QuizID         string
 	QuestionNumber int64
@@ -128,6 +144,7 @@ func (q *Queries) GetQuiz(ctx context.Context, id string) (GetQuizRow, error) {
 		&i.Title,
 		&i.UserID,
 		&i.Path,
+		&i.DeletedAt,
 		&i.ID_2,
 		&i.QuizID,
 		&i.QuestionNumber,

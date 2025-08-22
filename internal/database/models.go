@@ -15,6 +15,7 @@ type Quiz struct {
 	Title     string
 	UserID    string
 	Path      string
+	DeletedAt sql.NullString
 }
 
 type QuizQuestion struct {

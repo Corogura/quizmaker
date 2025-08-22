@@ -57,6 +57,7 @@ func main() {
 	r.POST("/api/revoke", cfg.handlerRevokeRefreshToken)
 	r.POST("/quizzes", cfg.handlerQuizzesCreate)
 	r.POST("/quizzes/:path", cfg.handlerQuestionsCreate)
+	r.DELETE("/quizzes/:path", cfg.handlerQuizzesDelete)
 	// ---------- End of routes ----------
 
 	srv := &http.Server{

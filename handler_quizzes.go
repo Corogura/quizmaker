@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"net/http"
 	"time"
 
@@ -105,4 +106,43 @@ func (cfg *apiConfig) handlerQuestionsCreate(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusCreated, gin.H{"message": "Question created successfully"})
+}
+
+func (cfg *apiConfig) handlerQuizzesDelete(c *gin.Context) {
+	path := c.Param("path")
+	if path == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Path is required"})
+		return
+	}
+	quiz, err := cfg.db.GetQuizIDFromPath(c.Request.Context(), path)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Quiz not found"})
+		return
+	}
+	bearer, err := auth.GetBearerToken(c.Request.Header)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid Authorization header"})
+		return
+	}
+	userID, err := auth.ValidateJWT(bearer, cfg.jwtSecret)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+		return
+	}
+	if quiz.UserID != userID.String() {
+		c.JSON(http.StatusForbidden, gin.H{"error": "You do not have permission to delete this quiz"})
+		return
+	}
+	err = cfg.db.DeleteQuiz(c.Request.Context(), database.DeleteQuizParams{
+		ID: quiz.ID,
+		DeletedAt: sql.NullString{
+			String: time.Now().UTC().Format(time.RFC3339),
+			Valid:  true,
+		},
+	})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Couldn't delete quiz"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Quiz deleted successfully"})
 }

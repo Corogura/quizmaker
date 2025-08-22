@@ -32,3 +32,6 @@ SELECT id, user_id FROM quizzes WHERE path = ?;
 
 -- name: GetQuestionCountInQuiz :one
 SELECT COUNT(*) AS question_count FROM quiz_questions WHERE quiz_id = ?;
+
+-- name: DeleteQuiz :exec
+UPDATE quizzes SET deleted_at = ? WHERE id = ?;
