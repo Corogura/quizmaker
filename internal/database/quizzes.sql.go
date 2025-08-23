@@ -99,6 +99,20 @@ func (q *Queries) DeleteQuiz(ctx context.Context, arg DeleteQuizParams) error {
 	return err
 }
 
+const deleteQuizQuestion = `-- name: DeleteQuizQuestion :exec
+UPDATE quiz_questions SET deleted_at = ? WHERE id = ?
+`
+
+type DeleteQuizQuestionParams struct {
+	DeletedAt sql.NullString
+	ID        string
+}
+
+func (q *Queries) DeleteQuizQuestion(ctx context.Context, arg DeleteQuizQuestionParams) error {
+	_, err := q.db.ExecContext(ctx, deleteQuizQuestion, arg.DeletedAt, arg.ID)
+	return err
+}
+
 const getQuestionCountInQuiz = `-- name: GetQuestionCountInQuiz :one
 SELECT COUNT(*) AS question_count FROM quiz_questions WHERE quiz_id = ?
 `
@@ -110,8 +124,35 @@ func (q *Queries) GetQuestionCountInQuiz(ctx context.Context, quizID string) (in
 	return question_count, err
 }
 
+const getQuestionFromQuestionNumber = `-- name: GetQuestionFromQuestionNumber :one
+SELECT id, quiz_id, question_number, question_text, choice1, choice2, choice3, choice4, answer, deleted_at FROM quiz_questions WHERE id = ? AND quiz_id = ?
+`
+
+type GetQuestionFromQuestionNumberParams struct {
+	ID     string
+	QuizID string
+}
+
+func (q *Queries) GetQuestionFromQuestionNumber(ctx context.Context, arg GetQuestionFromQuestionNumberParams) (QuizQuestion, error) {
+	row := q.db.QueryRowContext(ctx, getQuestionFromQuestionNumber, arg.ID, arg.QuizID)
+	var i QuizQuestion
+	err := row.Scan(
+		&i.ID,
+		&i.QuizID,
+		&i.QuestionNumber,
+		&i.QuestionText,
+		&i.Choice1,
+		&i.Choice2,
+		&i.Choice3,
+		&i.Choice4,
+		&i.Answer,
+		&i.DeletedAt,
+	)
+	return i, err
+}
+
 const getQuiz = `-- name: GetQuiz :one
-SELECT quizzes.id, created_at, updated_at, title, user_id, path, deleted_at, quiz_questions.id, quiz_id, question_number, question_text, choice1, choice2, choice3, choice4, answer FROM quizzes JOIN quiz_questions ON quizzes.id = quiz_questions.quiz_id
+SELECT quizzes.id, created_at, updated_at, title, user_id, path, quizzes.deleted_at, quiz_questions.id, quiz_id, question_number, question_text, choice1, choice2, choice3, choice4, answer, quiz_questions.deleted_at FROM quizzes JOIN quiz_questions ON quizzes.id = quiz_questions.quiz_id
 WHERE quizzes.id = ?
 `
 
@@ -132,6 +173,7 @@ type GetQuizRow struct {
 	Choice3        string
 	Choice4        string
 	Answer         int64
+	DeletedAt_2    sql.NullString
 }
 
 func (q *Queries) GetQuiz(ctx context.Context, id string) (GetQuizRow, error) {
@@ -154,22 +196,39 @@ func (q *Queries) GetQuiz(ctx context.Context, id string) (GetQuizRow, error) {
 		&i.Choice3,
 		&i.Choice4,
 		&i.Answer,
+		&i.DeletedAt_2,
 	)
 	return i, err
 }
 
 const getQuizIDFromPath = `-- name: GetQuizIDFromPath :one
-SELECT id, user_id FROM quizzes WHERE path = ?
+SELECT id, user_id, deleted_at FROM quizzes WHERE path = ?
 `
 
 type GetQuizIDFromPathRow struct {
-	ID     string
-	UserID string
+	ID        string
+	UserID    string
+	DeletedAt sql.NullString
 }
 
 func (q *Queries) GetQuizIDFromPath(ctx context.Context, path string) (GetQuizIDFromPathRow, error) {
 	row := q.db.QueryRowContext(ctx, getQuizIDFromPath, path)
 	var i GetQuizIDFromPathRow
-	err := row.Scan(&i.ID, &i.UserID)
+	err := row.Scan(&i.ID, &i.UserID, &i.DeletedAt)
 	return i, err
+}
+
+const updateQuizTitle = `-- name: UpdateQuizTitle :exec
+UPDATE quizzes SET title = ?, updated_at = ? WHERE id = ?
+`
+
+type UpdateQuizTitleParams struct {
+	Title     string
+	UpdatedAt string
+	ID        string
+}
+
+func (q *Queries) UpdateQuizTitle(ctx context.Context, arg UpdateQuizTitleParams) error {
+	_, err := q.db.ExecContext(ctx, updateQuizTitle, arg.Title, arg.UpdatedAt, arg.ID)
+	return err
 }

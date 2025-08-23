@@ -58,6 +58,10 @@ func (cfg *apiConfig) handlerQuestionsCreate(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Quiz not found"})
 		return
 	}
+	if quiz.DeletedAt.Valid {
+		c.JSON(http.StatusGone, gin.H{"error": "Quiz has been deleted"})
+		return
+	}
 	bearer, err := auth.GetBearerToken(c.Request.Header)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid Authorization header"})
@@ -119,6 +123,10 @@ func (cfg *apiConfig) handlerQuizzesDelete(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Quiz not found"})
 		return
 	}
+	if quiz.DeletedAt.Valid {
+		c.JSON(http.StatusGone, gin.H{"error": "Quiz has already been deleted"})
+		return
+	}
 	bearer, err := auth.GetBearerToken(c.Request.Header)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid Authorization header"})
@@ -145,4 +153,106 @@ func (cfg *apiConfig) handlerQuizzesDelete(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Quiz deleted successfully"})
+}
+
+func (cfg *apiConfig) handlerQuestionsDelete(c *gin.Context) {
+	if c.Param("question_number") == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Question ID is required"})
+		return
+	}
+	bearer, err := auth.GetBearerToken(c.Request.Header)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid Authorization header"})
+		return
+	}
+	userID, err := auth.ValidateJWT(bearer, cfg.jwtSecret)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+		return
+	}
+	quiz, err := cfg.db.GetQuizIDFromPath(c.Request.Context(), c.Param("path"))
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Quiz not found"})
+		return
+	}
+	if quiz.UserID != userID.String() {
+		c.JSON(http.StatusForbidden, gin.H{"error": "You do not have permission to delete this question"})
+		return
+	}
+	question, err := cfg.db.GetQuestionFromQuestionNumber(c.Request.Context(), database.GetQuestionFromQuestionNumberParams{
+		ID:     c.Param("question_number"),
+		QuizID: quiz.ID,
+	})
+	if err == sql.ErrNoRows {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Question not found"})
+		return
+	} else if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Couldn't retrieve question"})
+		return
+	}
+	if question.DeletedAt.Valid {
+		c.JSON(http.StatusGone, gin.H{"error": "Question has already been deleted"})
+		return
+	}
+	err = cfg.db.DeleteQuizQuestion(c.Request.Context(), database.DeleteQuizQuestionParams{
+		ID: question.ID,
+		DeletedAt: sql.NullString{
+			String: time.Now().UTC().Format(time.RFC3339),
+			Valid:  true,
+		},
+	})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Couldn't delete question"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Question deleted successfully"})
+}
+
+func (cfg *apiConfig) handlerUpdateQuizTitle(c *gin.Context) {
+	path := c.Param("path")
+	if path == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Path is required"})
+		return
+	}
+	quiz, err := cfg.db.GetQuizIDFromPath(c.Request.Context(), path)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Quiz not found"})
+		return
+	}
+	if quiz.DeletedAt.Valid {
+		c.JSON(http.StatusGone, gin.H{"error": "Quiz has been deleted"})
+		return
+	}
+	bearer, err := auth.GetBearerToken(c.Request.Header)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid Authorization header"})
+		return
+	}
+	userID, err := auth.ValidateJWT(bearer, cfg.jwtSecret)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+		return
+	}
+	if quiz.UserID != userID.String() {
+		c.JSON(http.StatusForbidden, gin.H{"error": "You do not have permission to update this quiz"})
+		return
+	}
+	type parameters struct {
+		NewTitle string `json:"new_title"`
+	}
+	var params parameters
+	if err := c.ShouldBindJSON(&params); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid parameters"})
+		return
+	}
+	err = cfg.db.UpdateQuizTitle(c.Request.Context(), database.UpdateQuizTitleParams{
+		ID:        quiz.ID,
+		Title:     params.NewTitle,
+		UpdatedAt: time.Now().UTC().Format(time.RFC3339),
+	})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Couldn't update quiz title"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Quiz title updated successfully"})
 }

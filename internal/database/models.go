@@ -28,6 +28,7 @@ type QuizQuestion struct {
 	Choice3        string
 	Choice4        string
 	Answer         int64
+	DeletedAt      sql.NullString
 }
 
 type RefreshToken struct {

@@ -58,6 +58,8 @@ func main() {
 	r.POST("/quizzes", cfg.handlerQuizzesCreate)
 	r.POST("/quizzes/:path", cfg.handlerQuestionsCreate)
 	r.DELETE("/quizzes/:path", cfg.handlerQuizzesDelete)
+	r.DELETE("/quizzes/:path/questions/:question_number", cfg.handlerQuestionsDelete)
+	r.PUT("/quizzes/:path", cfg.handlerUpdateQuizTitle)
 	// ---------- End of routes ----------
 
 	srv := &http.Server{
