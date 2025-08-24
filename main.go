@@ -50,16 +50,17 @@ func main() {
 	}
 	r := gin.Default()
 	// ---------- Register routes ----------
-	r.POST("/users", cfg.handlerUsersCreate)
-	r.GET("/users/login", cfg.handlerUsersLogin)
+	r.POST("/users/create", cfg.handlerUsersCreate)
+	r.POST("/users/login", cfg.handlerUsersLogin)
 	r.PUT("/users/password", cfg.handlerUpdatePassword)
-	r.POST("/api/refresh", cfg.handlerRefreshJWT)
-	r.POST("/api/revoke", cfg.handlerRevokeRefreshToken)
+	r.POST("/users/refresh", cfg.handlerRefreshJWT)
+	r.POST("/users/revoke", cfg.handlerRevokeRefreshToken)
 	r.POST("/quizzes", cfg.handlerQuizzesCreate)
 	r.POST("/quizzes/:path", cfg.handlerQuestionsCreate)
 	r.DELETE("/quizzes/:path", cfg.handlerQuizzesDelete)
 	r.DELETE("/quizzes/:path/questions/:question_number", cfg.handlerQuestionsDelete)
 	r.PUT("/quizzes/:path", cfg.handlerUpdateQuizTitle)
+	r.StaticFile("/", "./static/index.html")
 	// ---------- End of routes ----------
 
 	srv := &http.Server{

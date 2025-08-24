@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Quiz Maker</title>
+</head>
+
+<body class="section">
+    <h1>Welcome to Quiz Maker</h1>
+
+    <div id="loginContainer" class="section">
+        <input id="loginEmailField" type="text" placeholder="Enter your email">
+        <input id="loginPasswordField" type="password" placeholder="Enter your password">
+        <button id="loginUserButton" onclick="loginUser()">Login</button>
+        <button id="createUserButton" onclick="createUser()">Create User</button>
+    </div>
+
+    <div id="quizSection" class="section" style="display: none;">
+        <p id="greetingMessage"></p>
+
+        <textarea id="newQuizContent"></textarea>
+        <button id="createQuizButton" onclick="createQuiz()">Create Quiz</button>
+
+        <h2>Your Quizzes</h2>
+        <div id="quizzes"></div>
+
+        <button onclick="logout()">Logout</button>
+    </div>
+
+    <script>
+        let currentUserRefreshToken = null;
+        let currentUserJWT = null;
+        let currentUser = null;
+
+        async function createUser() {
+            const email = document.getElementById('loginEmailField').value;
+            const password = document.getElementById('loginPasswordField').value;
+
+            const response = await fetch('/users/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+
+            if (response.ok) {
+                alert('User created successfully. Please log in.');
+            } else {
+                const errorData = await response.json();
+                alert('Error creating user: ' + errorData.error);
+            }
+        }
+
+        async function loginUser() {
+            const email = document.getElementById('loginEmailField').value;
+            const password = document.getElementById('loginPasswordField').value;
+
+            const response = await fetch('/users/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: email, password: password })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                currentUserJWT = data.jwt;
+                currentUserRefreshToken = data.refresh_token;
+                currentUser = email;
+                localStorage.setItem('jwt', currentUserJWT);
+                localStorage.setItem('refresh_token', currentUserRefreshToken);
+                document.getElementById('greetingMessage').innerText = `Hello, ${currentUser}`;
+                document.getElementById('loginContainer').style.display = 'none';
+                document.getElementById('quizSection').style.display = 'block';
+                alert('Login successful');
+            } else {
+                const errorData = await response.json();
+                alert('Error logging in: ' + errorData.error);
+            }
+        }
+    </script>
+</html>

@@ -13,7 +13,6 @@ import (
 
 func (cfg *apiConfig) handlerUsersCreate(c *gin.Context) {
 	type parameters struct {
-		Name     string `json:"name"`
 		Email    string `json:"email"`
 		Password string `json:"password"`
 	}
