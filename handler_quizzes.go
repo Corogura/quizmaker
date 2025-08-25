@@ -256,3 +256,22 @@ func (cfg *apiConfig) handlerUpdateQuizTitle(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Quiz title updated successfully"})
 }
+
+func (cfg *apiConfig) handlerGetAllQuizzesForUser(c *gin.Context) {
+	bearer, err := auth.GetBearerToken(c.Request.Header)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid Authorization header"})
+		return
+	}
+	userID, err := auth.ValidateJWT(bearer, cfg.jwtSecret)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+		return
+	}
+	quizzes, err := cfg.db.GetAllQuizzesByUserID(c.Request.Context(), userID.String())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Couldn't retrieve quizzes"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"quizzes": quizzes})
+}

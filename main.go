@@ -61,6 +61,7 @@ func main() {
 	r.DELETE("/quizzes/:path/questions/:question_number", cfg.handlerQuestionsDelete)
 	r.PUT("/quizzes/:path", cfg.handlerUpdateQuizTitle)
 	r.StaticFile("/", "./static/index.html")
+	r.GET("/quizzes", cfg.handlerGetAllQuizzesForUser)
 	// ---------- End of routes ----------
 
 	srv := &http.Server{

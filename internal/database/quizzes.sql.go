@@ -113,6 +113,41 @@ func (q *Queries) DeleteQuizQuestion(ctx context.Context, arg DeleteQuizQuestion
 	return err
 }
 
+const getAllQuizzesByUserID = `-- name: GetAllQuizzesByUserID :many
+SELECT id, created_at, updated_at, title, user_id, path, deleted_at FROM quizzes WHERE user_id = ? AND deleted_at IS NULL ORDER BY updated_at DESC
+`
+
+func (q *Queries) GetAllQuizzesByUserID(ctx context.Context, userID string) ([]Quiz, error) {
+	rows, err := q.db.QueryContext(ctx, getAllQuizzesByUserID, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Quiz
+	for rows.Next() {
+		var i Quiz
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.Title,
+			&i.UserID,
+			&i.Path,
+			&i.DeletedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getQuestionCountInQuiz = `-- name: GetQuestionCountInQuiz :one
 SELECT COUNT(*) AS question_count FROM quiz_questions WHERE quiz_id = ?
 `

@@ -18,10 +18,11 @@
     <div id="quizSection" class="section" style="display: none;">
         <p id="greetingMessage"></p>
 
-        <textarea id="newQuizContent"></textarea>
+        <input id="newQuizTitle" type="text" placeholder="Enter quiz title">
         <button id="createQuizButton" onclick="createQuiz()">Create Quiz</button>
 
         <h2>Your Quizzes</h2>
+        <button onclick="loadquizzes()">Refresh Quizzes</button>
         <div id="quizzes"></div>
 
         <button onclick="logout()">Logout</button>
@@ -62,7 +63,7 @@
 
             if (response.ok) {
                 const data = await response.json();
-                currentUserJWT = data.jwt;
+                currentUserJWT = data.token;
                 currentUserRefreshToken = data.refresh_token;
                 currentUser = email;
                 localStorage.setItem('jwt', currentUserJWT);
@@ -71,10 +72,60 @@
                 document.getElementById('loginContainer').style.display = 'none';
                 document.getElementById('quizSection').style.display = 'block';
                 alert('Login successful');
+                loadquizzes();
             } else {
                 const errorData = await response.json();
                 alert('Error logging in: ' + errorData.error);
             }
         }
+
+        async function createQuiz() {
+            if (!currentUserJWT) {
+                alert('Please log in first');
+                return;
+            }
+            const quizTitle = document.getElementById('newQuizTitle').value;
+            const response = await fetch('/quizzes', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${currentUserJWT}` },
+                body: JSON.stringify({ title: quizTitle })
+            });
+
+            if (response.ok) {
+                loadquizzes();
+                alert('Quiz created successfully');
+            } else {
+                const errorData = await response.json();
+                alert('Error creating quiz: ' + errorData.error);
+            }
+        }
+
+        async function loadquizzes() {
+            if (!currentUserJWT) {
+                return;
+            }
+            const response = await fetch('/quizzes', {
+                headers: { 'Authorization': `Bearer ${currentUserJWT}` }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                const quizzes = data.quizzes;
+                const quizzesDiv = document.getElementById('quizzes');
+                quizzesDiv.innerHTML = '';
+                quizzes.forEach(quiz => {
+                    const quizDiv = document.createElement('div');
+                    const quizLink = document.createElement('a');
+                    quizLink.href = `/quizzes/${quiz.Path}`;
+                    quizLink.innerText = quiz.Title;
+                    quizDiv.appendChild(quizLink);
+                    quizzesDiv.appendChild(quizDiv);
+                });
+            } else {
+                const errorData = await response.json();
+                alert('Error loading quizzes: ' + errorData.error);
+            }
+        }
     </script>
+</body>
 </html>
