@@ -29,9 +29,10 @@
     </div>
 
     <script>
-        let currentUserRefreshToken = null;
-        let currentUserJWT = null;
-        let currentUser = null;
+        let currentUserRefreshToken = localStorage.getItem('refresh_token');
+        let currentUserJWT = localStorage.getItem('jwt');
+        let currentUser = localStorage.getItem('user');
+        loadLoginState();
 
         async function createUser() {
             const email = document.getElementById('loginEmailField').value;
@@ -68,14 +69,50 @@
                 currentUser = email;
                 localStorage.setItem('jwt', currentUserJWT);
                 localStorage.setItem('refresh_token', currentUserRefreshToken);
-                document.getElementById('greetingMessage').innerText = `Hello, ${currentUser}`;
-                document.getElementById('loginContainer').style.display = 'none';
-                document.getElementById('quizSection').style.display = 'block';
+                localStorage.setItem('user', currentUser);
+                loadLoginState();
                 alert('Login successful');
                 loadquizzes();
             } else {
                 const errorData = await response.json();
                 alert('Error logging in: ' + errorData.error);
+            }
+        }
+
+        async function loadLoginState() {
+            if (currentUserJWT) {
+                const response = await fetch('/users/validate', {
+                    method: 'GET',
+                    headers: { 'Authorization': `Bearer ${currentUserJWT}` }
+                });
+                if (!response.ok) {
+                    const data = await fetch('/users/refresh', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ refresh_token: currentUserRefreshToken })
+                    });
+                    if (data.ok) {
+                        const newData = await data.json();
+                        currentUserJWT = newData.token;
+                        localStorage.setItem('jwt', currentUserJWT);
+                    } else {
+                        currentUserJWT = null;
+                        currentUserRefreshToken = null;
+                        currentUser = null;
+                        localStorage.removeItem('jwt');
+                        localStorage.removeItem('refresh_token');
+                        localStorage.removeItem('user');
+                        alert('Session expired. Please log in again.');
+                        return;
+                    }
+                }
+                document.getElementById('loginContainer').style.display = 'none';
+                document.getElementById('quizSection').style.display = 'block';
+                document.getElementById('greetingMessage').innerText = `Hello, ${currentUser}`;
+                loadquizzes();
+            } else {
+                document.getElementById('loginContainer').style.display = 'block';
+                document.getElementById('quizSection').style.display = 'none';
             }
         }
 
@@ -125,6 +162,16 @@
                 const errorData = await response.json();
                 alert('Error loading quizzes: ' + errorData.error);
             }
+        }
+
+        async function logout() {
+            currentUserJWT = null;
+            currentUserRefreshToken = null;
+            currentUser = null;
+            localStorage.removeItem('jwt');
+            localStorage.removeItem('refresh_token');
+            localStorage.removeItem('user');
+            loadLoginState();
         }
     </script>
 </body>

@@ -178,3 +178,17 @@ func (cfg *apiConfig) handlerUpdatePassword(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Password updated successfully"})
 }
+
+func (cfg *apiConfig) handlerValidateJWT(c *gin.Context) {
+	bearerToken, err := auth.GetBearerToken(c.Request.Header)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+		return
+	}
+	_, err = auth.ValidateJWT(bearerToken, cfg.jwtSecret)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Token is valid"})
+}
