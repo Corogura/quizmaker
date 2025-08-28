@@ -87,9 +87,8 @@
                 });
                 if (!response.ok) {
                     const data = await fetch('/users/refresh', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ refresh_token: currentUserRefreshToken })
+                        method: 'PUT',
+                        headers: { 'Authorization': `Bearer ${currentUserRefreshToken}` }
                     });
                     if (data.ok) {
                         const newData = await data.json();

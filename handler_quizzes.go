@@ -275,3 +275,29 @@ func (cfg *apiConfig) handlerGetAllQuizzesForUser(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"quizzes": quizzes})
 }
+
+func (cfg *apiConfig) handlerGetAllQuestionsInQuiz(c *gin.Context) {
+	path := c.Param("path")
+	if path == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Path is required"})
+		return
+	}
+	quiz, err := cfg.db.GetQuizIDFromPath(c.Request.Context(), path)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Quiz not found"})
+		return
+	}
+	if quiz.DeletedAt.Valid {
+		c.JSON(http.StatusGone, gin.H{"error": "Quiz has been deleted"})
+		return
+	}
+	questions, err := cfg.db.GetAllQuestionsInQuiz(c.Request.Context(), quiz.ID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Couldn't retrieve questions"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"quiz":      quiz,
+		"questions": questions,
+	})
+}

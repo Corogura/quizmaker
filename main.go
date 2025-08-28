@@ -53,8 +53,8 @@ func main() {
 	r.POST("/users/create", cfg.handlerUsersCreate)
 	r.POST("/users/login", cfg.handlerUsersLogin)
 	r.PUT("/users/password", cfg.handlerUpdatePassword)
-	r.POST("/users/refresh", cfg.handlerRefreshJWT)
-	r.POST("/users/revoke", cfg.handlerRevokeRefreshToken)
+	r.PUT("/users/refresh", cfg.handlerRefreshJWT)
+	r.PUT("/users/revoke", cfg.handlerRevokeRefreshToken)
 	r.GET("/users/validate", cfg.handlerValidateJWT)
 	r.POST("/quizzes", cfg.handlerQuizzesCreate)
 	r.POST("/quizzes/:path", cfg.handlerQuestionsCreate)
@@ -63,6 +63,7 @@ func main() {
 	r.PUT("/quizzes/:path", cfg.handlerUpdateQuizTitle)
 	r.StaticFile("/", "./static/index.html")
 	r.GET("/quizzes", cfg.handlerGetAllQuizzesForUser)
+	r.GET("/quizzes/:path/questions", cfg.handlerGetAllQuestionsInQuiz)
 	// ---------- End of routes ----------
 
 	srv := &http.Server{

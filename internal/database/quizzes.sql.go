@@ -113,6 +113,44 @@ func (q *Queries) DeleteQuizQuestion(ctx context.Context, arg DeleteQuizQuestion
 	return err
 }
 
+const getAllQuestionsInQuiz = `-- name: GetAllQuestionsInQuiz :many
+SELECT id, quiz_id, question_number, question_text, choice1, choice2, choice3, choice4, answer, deleted_at FROM quiz_questions WHERE quiz_id = ? AND deleted_at IS NULL ORDER BY question_number ASC
+`
+
+func (q *Queries) GetAllQuestionsInQuiz(ctx context.Context, quizID string) ([]QuizQuestion, error) {
+	rows, err := q.db.QueryContext(ctx, getAllQuestionsInQuiz, quizID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []QuizQuestion
+	for rows.Next() {
+		var i QuizQuestion
+		if err := rows.Scan(
+			&i.ID,
+			&i.QuizID,
+			&i.QuestionNumber,
+			&i.QuestionText,
+			&i.Choice1,
+			&i.Choice2,
+			&i.Choice3,
+			&i.Choice4,
+			&i.Answer,
+			&i.DeletedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getAllQuizzesByUserID = `-- name: GetAllQuizzesByUserID :many
 SELECT id, created_at, updated_at, title, user_id, path, deleted_at FROM quizzes WHERE user_id = ? AND deleted_at IS NULL ORDER BY updated_at DESC
 `

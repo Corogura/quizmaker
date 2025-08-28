@@ -46,4 +46,7 @@ SELECT * FROM quiz_questions WHERE id = ? AND quiz_id = ?;
 UPDATE quizzes SET title = ?, updated_at = ? WHERE id = ?;
 
 -- name: GetAllQuizzesByUserID :many
-SELECT * FROM quizzes WHERE user_id = ? AND deleted_at IS NULL ORDER BY updated_at DESC
+SELECT * FROM quizzes WHERE user_id = ? AND deleted_at IS NULL ORDER BY updated_at DESC;
+
+-- name: GetAllQuestionsInQuiz :many
+SELECT * FROM quiz_questions WHERE quiz_id = ? AND deleted_at IS NULL ORDER BY question_number ASC;
