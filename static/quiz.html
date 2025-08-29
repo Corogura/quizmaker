@@ -19,6 +19,9 @@
         let currentUserRefreshToken = localStorage.getItem('refresh_token');
         let currentUserJWT = localStorage.getItem('jwt');
         let currentUser = localStorage.getItem('user');
+        
+        let points = 0;
+        let totalQuestions = 0;
 
         loadQuestions();
 
@@ -28,17 +31,63 @@
             });
 
             if (response.ok) {
-                const questions = await response.json();
+                const data = await response.json();
+                const questions = data.questions;
                 const questionsContainer = document.getElementById('questionsContainer');
                 questionsContainer.innerHTML = '';
                 questions.forEach(question => {
                     const questionDiv = document.createElement('div');
-                    questionDiv.innerText = question.text;
+                    const questionText = document.createElement('p');
+                    questionText.textContent = question.question_text;
+                    questionDiv.appendChild(questionText);
+                    question.choices.forEach((choice, index) => {
+                        const choiceLabel = document.createElement('label');
+                        const choiceInput = document.createElement('input');
+                        choiceInput.type = 'radio';
+                        choiceInput.name = `question_${question.id}`;
+                        choiceInput.value = index;
+                        choiceLabel.textContent = choice.choice_text;
+                        if (choice.is_correct) {
+                            choiceInput.value = 'correct';
+                        }
+                        choiceLabel.appendChild(choiceInput);
+                        questionDiv.appendChild(choiceLabel);
+                        questionDiv.appendChild(document.createElement('br'));
+                    });
+                    const submitButton = document.createElement('button');
+                    submitButton.textContent = 'Submit Answer';
+                    submitButton.onclick = () => {
+                        const selected = document.querySelector(`input[name="question_${question.id}"]:checked`);
+                        if (selected) {
+                            if (selected.value === 'correct') {
+                                alert('Correct!');
+                                points++;
+                            } else {
+                                alert('Incorrect.');
+                            }
+                            submitButton.disabled = true;
+                            updateScore();
+                        } else {
+                            alert('Please select an answer.');
+                        }
+                    };
+                    questionDiv.appendChild(submitButton);
                     questionsContainer.appendChild(questionDiv);
-                });
+                    questionsContainer.appendChild(document.createElement('hr'));
+                    totalQuestions++;
+                })
+                const pointsDisplay = document.createElement('p');
+                pointsDisplay.id = 'pointsDisplay';
+                pointsDisplay.textContent = `Score: ${points}/${totalQuestions}`;
+                questionsContainer.appendChild(pointsDisplay);
             } else {
                 alert('Error loading questions.');
             }
+        }
+
+        function updateScore() {
+            const pointsDisplay = document.getElementById('pointsDisplay');
+            pointsDisplay.textContent = `Score: ${points}/${totalQuestions}`;
         }
 
         function goBack() {

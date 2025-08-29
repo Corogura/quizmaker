@@ -49,6 +49,7 @@ func main() {
 		jwtSecret: jwtSecret,
 	}
 	r := gin.Default()
+	r.LoadHTMLFiles("static/quiz.html")
 	// ---------- Register routes ----------
 	r.POST("/users/create", cfg.handlerUsersCreate)
 	r.POST("/users/login", cfg.handlerUsersLogin)
@@ -63,6 +64,7 @@ func main() {
 	r.PUT("/quizzes/:path", cfg.handlerUpdateQuizTitle)
 	r.StaticFile("/", "./static/index.html")
 	r.GET("/quizzes", cfg.handlerGetAllQuizzesForUser)
+	r.GET("/quizzes/:path", cfg.handlerServeQuizPage)
 	r.GET("/quizzes/:path/questions", cfg.handlerGetAllQuestionsInQuiz)
 	// ---------- End of routes ----------
 

@@ -296,8 +296,53 @@ func (cfg *apiConfig) handlerGetAllQuestionsInQuiz(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Couldn't retrieve questions"})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{
-		"quiz":      quiz,
-		"questions": questions,
-	})
+	type QuestionWithChoices struct {
+		ID           string `json:"id"`
+		QuestionText string `json:"question_text"`
+		Choices      []struct {
+			ChoiceText string `json:"choice_text"`
+			IsCorrect  bool   `json:"is_correct"`
+		} `json:"choices"`
+	}
+	var formattedQuestions []QuestionWithChoices
+	for _, q := range questions {
+		formattedQuestion := QuestionWithChoices{
+			ID:           q.ID,
+			QuestionText: q.QuestionText,
+			Choices: []struct {
+				ChoiceText string `json:"choice_text"`
+				IsCorrect  bool   `json:"is_correct"`
+			}{},
+		}
+		choices := []struct {
+			ChoiceText string `json:"choice_text"`
+			IsCorrect  bool   `json:"is_correct"`
+		}{
+			{ChoiceText: q.Choice1, IsCorrect: q.Answer == 1},
+			{ChoiceText: q.Choice2, IsCorrect: q.Answer == 2},
+			{ChoiceText: q.Choice3, IsCorrect: q.Answer == 3},
+			{ChoiceText: q.Choice4, IsCorrect: q.Answer == 4},
+		}
+		formattedQuestion.Choices = choices
+		formattedQuestions = append(formattedQuestions, formattedQuestion)
+	}
+	c.JSON(http.StatusOK, gin.H{"questions": formattedQuestions})
+}
+
+func (cfg *apiConfig) handlerServeQuizPage(c *gin.Context) {
+	path := c.Param("path")
+	if path == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Path is required"})
+		return
+	}
+	quiz, err := cfg.db.GetQuizIDFromPath(c.Request.Context(), path)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Quiz not found"})
+		return
+	}
+	if quiz.DeletedAt.Valid {
+		c.JSON(http.StatusGone, gin.H{"error": "Quiz has been deleted"})
+		return
+	}
+	c.HTML(http.StatusOK, "quiz.html", gin.H{})
 }
