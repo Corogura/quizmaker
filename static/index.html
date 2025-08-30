@@ -13,6 +13,7 @@
         <input id="loginPasswordField" type="password" placeholder="Enter your password">
         <button id="loginUserButton" onclick="loginUser()">Login</button>
         <button id="createUserButton" onclick="createUser()">Create User</button>
+        <button id="guestLoginButton" onclick="loginAsGuest()">Login as Guest</button>
     </div>
 
     <div id="quizSection" class="section" style="display: none;">
@@ -21,8 +22,8 @@
         <input id="newQuizTitle" type="text" placeholder="Enter quiz title">
         <button id="createQuizButton" onclick="createQuiz()">Create Quiz</button>
 
-        <h2>Your Quizzes</h2>
-        <button onclick="loadquizzes()">Refresh Quizzes</button>
+        <h2 id="quizzesHeader" style="display: none;">Your Quizzes</h2>
+        <button id="loadQuizzesButton" style="display: none;" onclick="loadquizzes()">Refresh Quizzes</button>
         <div id="quizzes"></div>
 
         <button onclick="logout()">Logout</button>
@@ -77,6 +78,12 @@
                 const errorData = await response.json();
                 alert('Error logging in: ' + errorData.error);
             }
+        }
+
+        async function loginAsGuest() {
+            document.getElementById('loginEmailField').value = 'guest';
+            document.getElementById('loginPasswordField').value = 'guestpassword';
+            await loginUser();
         }
 
         async function loadLoginState() {
@@ -144,7 +151,13 @@
                 headers: { 'Authorization': `Bearer ${currentUserJWT}` }
             });
 
+            if (currentUser === 'guest') {
+                return;
+            }
+
             if (response.ok) {
+                document.getElementById('quizzesHeader').style.display = 'block';
+                document.getElementById('loadQuizzesButton').style.display = 'block';
                 const data = await response.json();
                 const quizzes = data.quizzes;
                 const quizzesDiv = document.getElementById('quizzes');
