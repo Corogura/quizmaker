@@ -21,11 +21,11 @@ VALUES (
 `
 
 type CreateUserParams struct {
-	ID        string
-	CreatedAt string
-	UpdatedAt string
-	Email     string
-	HashedPw  string
+	ID        string `json:"id"`
+	CreatedAt string `json:"created_at"`
+	UpdatedAt string `json:"updated_at"`
+	Email     string `json:"email"`
+	HashedPw  string `json:"hashed_pw"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) error {
@@ -83,9 +83,9 @@ WHERE id = ?
 `
 
 type UpdatePasswordParams struct {
-	HashedPw  string
-	UpdatedAt string
-	ID        string
+	HashedPw  string `json:"hashed_pw"`
+	UpdatedAt string `json:"updated_at"`
+	ID        string `json:"id"`
 }
 
 func (q *Queries) UpdatePassword(ctx context.Context, arg UpdatePasswordParams) error {

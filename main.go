@@ -54,7 +54,7 @@ func main() {
 	r.POST("/users/create", cfg.handlerUsersCreate)
 	r.POST("/users/login", cfg.handlerUsersLogin)
 	r.PUT("/users/password", cfg.handlerUpdatePassword)
-	r.PUT("/users/refresh", cfg.handlerRefreshJWT)
+	r.GET("/users/refresh", cfg.handlerRefreshJWT)
 	r.PUT("/users/revoke", cfg.handlerRevokeRefreshToken)
 	r.GET("/users/validate", cfg.handlerValidateJWT)
 	r.POST("/quizzes", cfg.handlerQuizzesCreate)

@@ -23,11 +23,11 @@ RETURNING token, created_at, updated_at, user_id, expires_at, revoked_at
 `
 
 type CreateRefreshTokenParams struct {
-	Token     string
-	CreatedAt string
-	UpdatedAt string
-	UserID    string
-	ExpiresAt string
+	Token     string `json:"token"`
+	CreatedAt string `json:"created_at"`
+	UpdatedAt string `json:"updated_at"`
+	UserID    string `json:"user_id"`
+	ExpiresAt string `json:"expires_at"`
 }
 
 func (q *Queries) CreateRefreshToken(ctx context.Context, arg CreateRefreshTokenParams) (RefreshToken, error) {
@@ -65,12 +65,12 @@ WHERE refresh_tokens.token = ?
 `
 
 type GetUserFromRefreshTokenRow struct {
-	ID             string
-	CreatedAt      string
-	UpdatedAt      string
-	Email          string
-	TokenExpiresAt string
-	TokenRevokedAt sql.NullString
+	ID             string         `json:"id"`
+	CreatedAt      string         `json:"created_at"`
+	UpdatedAt      string         `json:"updated_at"`
+	Email          string         `json:"email"`
+	TokenExpiresAt string         `json:"token_expires_at"`
+	TokenRevokedAt sql.NullString `json:"token_revoked_at"`
 }
 
 func (q *Queries) GetUserFromRefreshToken(ctx context.Context, token string) (GetUserFromRefreshTokenRow, error) {
@@ -94,9 +94,9 @@ WHERE token = ?
 `
 
 type RevokeRefreshTokenParams struct {
-	UpdatedAt string
-	RevokedAt sql.NullString
-	Token     string
+	UpdatedAt string         `json:"updated_at"`
+	RevokedAt sql.NullString `json:"revoked_at"`
+	Token     string         `json:"token"`
 }
 
 func (q *Queries) RevokeRefreshToken(ctx context.Context, arg RevokeRefreshTokenParams) error {

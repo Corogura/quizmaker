@@ -9,41 +9,41 @@ import (
 )
 
 type Quiz struct {
-	ID        string
-	CreatedAt string
-	UpdatedAt string
-	Title     string
-	UserID    string
-	Path      string
-	DeletedAt sql.NullString
+	ID        string         `json:"id"`
+	CreatedAt string         `json:"created_at"`
+	UpdatedAt string         `json:"updated_at"`
+	Title     string         `json:"title"`
+	UserID    string         `json:"user_id"`
+	Path      string         `json:"path"`
+	DeletedAt sql.NullString `json:"deleted_at"`
 }
 
 type QuizQuestion struct {
-	ID             string
-	QuizID         string
-	QuestionNumber int64
-	QuestionText   string
-	Choice1        string
-	Choice2        string
-	Choice3        string
-	Choice4        string
-	Answer         int64
-	DeletedAt      sql.NullString
+	ID             string         `json:"id"`
+	QuizID         string         `json:"quiz_id"`
+	QuestionNumber int64          `json:"question_number"`
+	QuestionText   string         `json:"question_text"`
+	Choice1        string         `json:"choice1"`
+	Choice2        string         `json:"choice2"`
+	Choice3        string         `json:"choice3"`
+	Choice4        string         `json:"choice4"`
+	Answer         int64          `json:"answer"`
+	DeletedAt      sql.NullString `json:"deleted_at"`
 }
 
 type RefreshToken struct {
-	Token     string
-	CreatedAt string
-	UpdatedAt string
-	UserID    string
-	ExpiresAt string
-	RevokedAt sql.NullString
+	Token     string         `json:"token"`
+	CreatedAt string         `json:"created_at"`
+	UpdatedAt string         `json:"updated_at"`
+	UserID    string         `json:"user_id"`
+	ExpiresAt string         `json:"expires_at"`
+	RevokedAt sql.NullString `json:"revoked_at"`
 }
 
 type User struct {
-	ID        string
-	CreatedAt string
-	UpdatedAt string
-	Email     string
-	HashedPw  string
+	ID        string `json:"id"`
+	CreatedAt string `json:"created_at"`
+	UpdatedAt string `json:"updated_at"`
+	Email     string `json:"email"`
+	HashedPw  string `json:"hashed_pw"`
 }

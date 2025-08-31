@@ -23,12 +23,12 @@ VALUES (
 `
 
 type CreateQuizParams struct {
-	ID        string
-	CreatedAt string
-	UpdatedAt string
-	Title     string
-	UserID    string
-	Path      string
+	ID        string `json:"id"`
+	CreatedAt string `json:"created_at"`
+	UpdatedAt string `json:"updated_at"`
+	Title     string `json:"title"`
+	UserID    string `json:"user_id"`
+	Path      string `json:"path"`
 }
 
 func (q *Queries) CreateQuiz(ctx context.Context, arg CreateQuizParams) error {
@@ -59,15 +59,15 @@ VALUES (
 `
 
 type CreateQuizQuestionsParams struct {
-	ID             string
-	QuizID         string
-	QuestionNumber int64
-	QuestionText   string
-	Choice1        string
-	Choice2        string
-	Choice3        string
-	Choice4        string
-	Answer         int64
+	ID             string `json:"id"`
+	QuizID         string `json:"quiz_id"`
+	QuestionNumber int64  `json:"question_number"`
+	QuestionText   string `json:"question_text"`
+	Choice1        string `json:"choice1"`
+	Choice2        string `json:"choice2"`
+	Choice3        string `json:"choice3"`
+	Choice4        string `json:"choice4"`
+	Answer         int64  `json:"answer"`
 }
 
 func (q *Queries) CreateQuizQuestions(ctx context.Context, arg CreateQuizQuestionsParams) error {
@@ -90,8 +90,8 @@ UPDATE quizzes SET deleted_at = ? WHERE id = ?
 `
 
 type DeleteQuizParams struct {
-	DeletedAt sql.NullString
-	ID        string
+	DeletedAt sql.NullString `json:"deleted_at"`
+	ID        string         `json:"id"`
 }
 
 func (q *Queries) DeleteQuiz(ctx context.Context, arg DeleteQuizParams) error {
@@ -104,8 +104,8 @@ UPDATE quiz_questions SET deleted_at = ? WHERE id = ?
 `
 
 type DeleteQuizQuestionParams struct {
-	DeletedAt sql.NullString
-	ID        string
+	DeletedAt sql.NullString `json:"deleted_at"`
+	ID        string         `json:"id"`
 }
 
 func (q *Queries) DeleteQuizQuestion(ctx context.Context, arg DeleteQuizQuestionParams) error {
@@ -202,8 +202,8 @@ SELECT id, quiz_id, question_number, question_text, choice1, choice2, choice3, c
 `
 
 type GetQuestionFromQuestionNumberParams struct {
-	ID     string
-	QuizID string
+	ID     string `json:"id"`
+	QuizID string `json:"quiz_id"`
 }
 
 func (q *Queries) GetQuestionFromQuestionNumber(ctx context.Context, arg GetQuestionFromQuestionNumberParams) (QuizQuestion, error) {
@@ -230,23 +230,23 @@ WHERE quizzes.id = ?
 `
 
 type GetQuizRow struct {
-	ID             string
-	CreatedAt      string
-	UpdatedAt      string
-	Title          string
-	UserID         string
-	Path           string
-	DeletedAt      sql.NullString
-	ID_2           string
-	QuizID         string
-	QuestionNumber int64
-	QuestionText   string
-	Choice1        string
-	Choice2        string
-	Choice3        string
-	Choice4        string
-	Answer         int64
-	DeletedAt_2    sql.NullString
+	ID             string         `json:"id"`
+	CreatedAt      string         `json:"created_at"`
+	UpdatedAt      string         `json:"updated_at"`
+	Title          string         `json:"title"`
+	UserID         string         `json:"user_id"`
+	Path           string         `json:"path"`
+	DeletedAt      sql.NullString `json:"deleted_at"`
+	ID_2           string         `json:"id_2"`
+	QuizID         string         `json:"quiz_id"`
+	QuestionNumber int64          `json:"question_number"`
+	QuestionText   string         `json:"question_text"`
+	Choice1        string         `json:"choice1"`
+	Choice2        string         `json:"choice2"`
+	Choice3        string         `json:"choice3"`
+	Choice4        string         `json:"choice4"`
+	Answer         int64          `json:"answer"`
+	DeletedAt_2    sql.NullString `json:"deleted_at_2"`
 }
 
 func (q *Queries) GetQuiz(ctx context.Context, id string) (GetQuizRow, error) {
@@ -279,9 +279,9 @@ SELECT id, user_id, deleted_at FROM quizzes WHERE path = ?
 `
 
 type GetQuizIDFromPathRow struct {
-	ID        string
-	UserID    string
-	DeletedAt sql.NullString
+	ID        string         `json:"id"`
+	UserID    string         `json:"user_id"`
+	DeletedAt sql.NullString `json:"deleted_at"`
 }
 
 func (q *Queries) GetQuizIDFromPath(ctx context.Context, path string) (GetQuizIDFromPathRow, error) {
@@ -296,9 +296,9 @@ UPDATE quizzes SET title = ?, updated_at = ? WHERE id = ?
 `
 
 type UpdateQuizTitleParams struct {
-	Title     string
-	UpdatedAt string
-	ID        string
+	Title     string `json:"title"`
+	UpdatedAt string `json:"updated_at"`
+	ID        string `json:"id"`
 }
 
 func (q *Queries) UpdateQuizTitle(ctx context.Context, arg UpdateQuizTitleParams) error {

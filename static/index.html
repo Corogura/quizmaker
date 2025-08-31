@@ -94,7 +94,7 @@
                 });
                 if (!response.ok) {
                     const data = await fetch('/users/refresh', {
-                        method: 'PUT',
+                        method: 'GET',
                         headers: { 'Authorization': `Bearer ${currentUserRefreshToken}` }
                     });
                     if (data.ok) {
@@ -165,8 +165,8 @@
                 quizzes.forEach(quiz => {
                     const quizDiv = document.createElement('div');
                     const quizLink = document.createElement('a');
-                    quizLink.href = `/quizzes/${quiz.Path}`;
-                    quizLink.innerText = quiz.Title;
+                    quizLink.href = `/quizzes/${quiz.path}`;
+                    quizLink.innerText = quiz.title;
                     quizDiv.appendChild(quizLink);
                     quizzesDiv.appendChild(quizDiv);
                 });
