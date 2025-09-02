@@ -9,6 +9,7 @@
     <h1>Quiz: <span id="quizTitle"></span></h1>
     <div id="questionSection" class="section">
         <h2>Questions</h2>
+        <button onclick="editQuiz()">Edit Quiz</button>
         <div id="questionsContainer"></div>
     </div>
 
@@ -82,6 +83,62 @@
             } else {
                 alert('Error loading questions.');
             }
+        }
+
+        async function editQuiz() {
+            if (currentUser === null) {
+                alert('Please log in first');
+                return;
+            }
+            const addQuestionDiv = document.createElement('div');
+            const questionInput = document.createElement('input');
+            questionInput.type = 'text';
+            questionInput.placeholder = 'Enter question text';
+            addQuestionDiv.appendChild(questionInput);
+            addQuestionDiv.appendChild(document.createElement('br'));
+            for (let i = 0; i < 4; i++) {
+                const correctAnswerInput = document.createElement('input');
+                correctAnswerInput.type = 'radio';
+                correctAnswerInput.name = 'correctAnswer';
+                correctAnswerInput.value = i + 1;
+                addQuestionDiv.appendChild(correctAnswerInput);
+                const choiceInput = document.createElement('input');
+                choiceInput.type = 'text';
+                choiceInput.name = `choice${i + 1}`;
+                choiceInput.placeholder = `Enter choice ${i + 1}`;
+                addQuestionDiv.appendChild(choiceInput);
+                addQuestionDiv.appendChild(document.createElement('br'));
+            }
+            const addButton = document.createElement('button');
+            addButton.textContent = 'Add Question';
+            addButton.onclick = async () => {
+                const questionText = questionInput.value;
+                const choice1 = addQuestionDiv.querySelector('input[name="choice1"]').value;
+                const choice2 = addQuestionDiv.querySelector('input[name="choice2"]').value;
+                const choice3 = addQuestionDiv.querySelector('input[name="choice3"]').value;
+                const choice4 = addQuestionDiv.querySelector('input[name="choice4"]').value;
+                const answerIndex = addQuestionDiv.querySelector('input[name="correctAnswer"]:checked');
+                
+                if (!questionText || !choice1 || !choice2 || !choice3 || !choice4 || !answerIndex) {
+                    alert('Please fill in all fields and select a correct answer');
+                    return;
+                }
+                const response = await fetch(`${window.location.pathname}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${currentUserJWT}` },
+                    body: JSON.stringify({ question: questionText, choice1, choice2, choice3, choice4, answer: parseInt(answerIndex.value, 10) })
+                });
+                if (response.ok) {
+                    alert('Question added successfully');
+                    loadQuestions();
+                } else {
+                    alert(`Error adding question: ${response.statusText}`);
+                }
+            };
+            addQuestionDiv.appendChild(addButton);
+            const questionsContainer = document.getElementById('questionsContainer');
+            questionsContainer.innerHTML = '';
+            questionsContainer.appendChild(addQuestionDiv);
         }
 
         function updateScore() {
