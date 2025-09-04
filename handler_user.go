@@ -190,5 +190,5 @@ func (cfg *apiConfig) handlerValidateJWT(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "Token is valid"})
+	c.JSON(http.StatusOK, gin.H{})
 }

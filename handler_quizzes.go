@@ -346,3 +346,35 @@ func (cfg *apiConfig) handlerServeQuizPage(c *gin.Context) {
 	}
 	c.HTML(http.StatusOK, "quiz.html", gin.H{})
 }
+
+func (cfg *apiConfig) handlerChechOwnerOfQuiz(c *gin.Context) {
+	path := c.Param("path")
+	if path == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Path is required"})
+		return
+	}
+	quiz, err := cfg.db.GetQuizIDFromPath(c.Request.Context(), path)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Quiz not found"})
+		return
+	}
+	if quiz.DeletedAt.Valid {
+		c.JSON(http.StatusGone, gin.H{"error": "Quiz has been deleted"})
+		return
+	}
+	bearer, err := auth.GetBearerToken(c.Request.Header)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid Authorization header"})
+		return
+	}
+	userID, err := auth.ValidateJWT(bearer, cfg.jwtSecret)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+		return
+	}
+	if quiz.UserID != userID.String() {
+		c.JSON(http.StatusForbidden, gin.H{"is_owner": false})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"is_owner": true})
+}

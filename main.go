@@ -66,6 +66,7 @@ func main() {
 	r.GET("/quizzes", cfg.handlerGetAllQuizzesForUser)
 	r.GET("/quizzes/:path", cfg.handlerServeQuizPage)
 	r.GET("/quizzes/:path/questions", cfg.handlerGetAllQuestionsInQuiz)
+	r.GET("/quizzes/:path/owner", cfg.handlerChechOwnerOfQuiz)
 	// ---------- End of routes ----------
 
 	srv := &http.Server{

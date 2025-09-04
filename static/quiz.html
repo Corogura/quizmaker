@@ -9,7 +9,7 @@
     <h1>Quiz: <span id="quizTitle"></span></h1>
     <div id="questionSection" class="section">
         <h2>Questions</h2>
-        <button onclick="editQuiz()">Edit Quiz</button>
+        <button onclick="editQuiz()" style="display: none;">Edit Quiz</button>
         <div id="questionsContainer"></div>
     </div>
 
@@ -24,6 +24,23 @@
         let totalQuestions = 0;
 
         loadQuestions();
+        checkOwnership();
+
+        async function checkOwnership() {
+            if (currentUserJWT === null) {
+                return;
+            }
+            const response = await fetch(`${window.location.pathname}/owner`, {
+                method: 'GET',
+                headers: { 'Authorization': `Bearer ${currentUserJWT}` }
+            });
+            if (response.ok) {
+                const data = await response.json();
+                if (data.is_owner) {
+                    document.querySelector('button[onclick="editQuiz()"]').style.display = 'inline';
+                }
+            }
+        }
 
         async function loadQuestions() {
             const response = await fetch(`${window.location.pathname}/questions`, {
@@ -86,11 +103,17 @@
         }
 
         async function editQuiz() {
-            if (currentUser === null) {
+            if (currentUserJWT === null) {
                 alert('Please log in first');
                 return;
             }
+            const existingDiv = document.getElementById('addQuestionDiv');
+            if (existingDiv) {
+                existingDiv.remove();
+                return;
+            }
             const addQuestionDiv = document.createElement('div');
+            addQuestionDiv.id = 'addQuestionDiv';
             const questionInput = document.createElement('input');
             questionInput.type = 'text';
             questionInput.placeholder = 'Enter question text';
@@ -136,9 +159,14 @@
                 }
             };
             addQuestionDiv.appendChild(addButton);
+            const cancelButton = document.createElement('button');
+            cancelButton.textContent = 'Cancel';
+            cancelButton.onclick = () => {
+                addQuestionDiv.remove();
+            };
+            addQuestionDiv.appendChild(cancelButton);
             const questionsContainer = document.getElementById('questionsContainer');
-            questionsContainer.innerHTML = '';
-            questionsContainer.appendChild(addQuestionDiv);
+            questionsContainer.prepend(addQuestionDiv);
         }
 
         function updateScore() {
