@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Quiz Maker</title>
+    <link rel="stylesheet" href="/static/styles.css">
 </head>
 
 <body class="section">
@@ -22,8 +23,10 @@
         <input id="newQuizTitle" type="text" placeholder="Enter quiz title">
         <button id="createQuizButton" onclick="createQuiz()">Create Quiz</button>
 
-        <h2 id="quizzesHeader" style="display: none;">Your Quizzes</h2>
-        <button id="loadQuizzesButton" style="display: none;" onclick="loadquizzes()">Refresh Quizzes</button>
+        <div class="header-container">
+            <h2 id="quizzesHeader" style="display: none;">Your Quizzes</h2>
+            <button id="loadQuizzesButton" style="display: none;" onclick="loadquizzes()">Refresh Quizzes</button>
+        </div>
         <div id="quizzes"></div>
 
         <button onclick="logout()">Logout</button>

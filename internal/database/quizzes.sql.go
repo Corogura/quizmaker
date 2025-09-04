@@ -275,11 +275,12 @@ func (q *Queries) GetQuiz(ctx context.Context, id string) (GetQuizRow, error) {
 }
 
 const getQuizIDFromPath = `-- name: GetQuizIDFromPath :one
-SELECT id, user_id, deleted_at FROM quizzes WHERE path = ?
+SELECT id, title, user_id, deleted_at FROM quizzes WHERE path = ?
 `
 
 type GetQuizIDFromPathRow struct {
 	ID        string         `json:"id"`
+	Title     string         `json:"title"`
 	UserID    string         `json:"user_id"`
 	DeletedAt sql.NullString `json:"deleted_at"`
 }
@@ -287,7 +288,12 @@ type GetQuizIDFromPathRow struct {
 func (q *Queries) GetQuizIDFromPath(ctx context.Context, path string) (GetQuizIDFromPathRow, error) {
 	row := q.db.QueryRowContext(ctx, getQuizIDFromPath, path)
 	var i GetQuizIDFromPathRow
-	err := row.Scan(&i.ID, &i.UserID, &i.DeletedAt)
+	err := row.Scan(
+		&i.ID,
+		&i.Title,
+		&i.UserID,
+		&i.DeletedAt,
+	)
 	return i, err
 }
 

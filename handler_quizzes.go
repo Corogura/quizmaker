@@ -344,7 +344,9 @@ func (cfg *apiConfig) handlerServeQuizPage(c *gin.Context) {
 		c.JSON(http.StatusGone, gin.H{"error": "Quiz has been deleted"})
 		return
 	}
-	c.HTML(http.StatusOK, "quiz.html", gin.H{})
+	c.HTML(http.StatusOK, "quiz.html", gin.H{
+		"title": quiz.Title,
+	})
 }
 
 func (cfg *apiConfig) handlerChechOwnerOfQuiz(c *gin.Context) {

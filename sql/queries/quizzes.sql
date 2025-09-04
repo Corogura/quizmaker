@@ -28,7 +28,7 @@ SELECT * FROM quizzes JOIN quiz_questions ON quizzes.id = quiz_questions.quiz_id
 WHERE quizzes.id = ?;
 
 -- name: GetQuizIDFromPath :one
-SELECT id, user_id, deleted_at FROM quizzes WHERE path = ?;
+SELECT id, title, user_id, deleted_at FROM quizzes WHERE path = ?;
 
 -- name: GetQuestionCountInQuiz :one
 SELECT COUNT(*) AS question_count FROM quiz_questions WHERE quiz_id = ?;

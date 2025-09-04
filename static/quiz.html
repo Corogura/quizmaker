@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <title>Quiz Maker - Quiz</title>
+    <link rel="stylesheet" href="/static/styles.css">
 </head>
 
 <body class="section">
-    <h1>Quiz: <span id="quizTitle"></span></h1>
+    <h1>Quiz: <span id="quizTitle">{{ .title }}</span></h1>
     <div id="questionSection" class="section">
         <h2>Questions</h2>
         <button onclick="editQuiz()" style="display: none;">Edit Quiz</button>
