@@ -40,7 +40,7 @@ UPDATE quizzes SET deleted_at = ? WHERE id = ?;
 UPDATE quiz_questions SET deleted_at = ? WHERE id = ?;
 
 -- name: GetQuestionFromQuestionNumber :one
-SELECT * FROM quiz_questions WHERE id = ? AND quiz_id = ?;
+SELECT * FROM quiz_questions WHERE question_number = ? AND quiz_id = ?;
 
 -- name: UpdateQuizTitle :exec
 UPDATE quizzes SET title = ?, updated_at = ? WHERE id = ?;

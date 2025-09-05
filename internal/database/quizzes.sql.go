@@ -198,16 +198,16 @@ func (q *Queries) GetQuestionCountInQuiz(ctx context.Context, quizID string) (in
 }
 
 const getQuestionFromQuestionNumber = `-- name: GetQuestionFromQuestionNumber :one
-SELECT id, quiz_id, question_number, question_text, choice1, choice2, choice3, choice4, answer, deleted_at FROM quiz_questions WHERE id = ? AND quiz_id = ?
+SELECT id, quiz_id, question_number, question_text, choice1, choice2, choice3, choice4, answer, deleted_at FROM quiz_questions WHERE question_number = ? AND quiz_id = ?
 `
 
 type GetQuestionFromQuestionNumberParams struct {
-	ID     string `json:"id"`
-	QuizID string `json:"quiz_id"`
+	QuestionNumber int64  `json:"question_number"`
+	QuizID         string `json:"quiz_id"`
 }
 
 func (q *Queries) GetQuestionFromQuestionNumber(ctx context.Context, arg GetQuestionFromQuestionNumberParams) (QuizQuestion, error) {
-	row := q.db.QueryRowContext(ctx, getQuestionFromQuestionNumber, arg.ID, arg.QuizID)
+	row := q.db.QueryRowContext(ctx, getQuestionFromQuestionNumber, arg.QuestionNumber, arg.QuizID)
 	var i QuizQuestion
 	err := row.Scan(
 		&i.ID,

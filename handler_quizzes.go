@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/Corogura/quizmaker/internal/auth"
@@ -160,6 +161,11 @@ func (cfg *apiConfig) handlerQuestionsDelete(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Question ID is required"})
 		return
 	}
+	questionNumber, err := strconv.Atoi(c.Param("question_number"))
+	if err != nil || questionNumber <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid question number"})
+		return
+	}
 	bearer, err := auth.GetBearerToken(c.Request.Header)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid Authorization header"})
@@ -180,8 +186,8 @@ func (cfg *apiConfig) handlerQuestionsDelete(c *gin.Context) {
 		return
 	}
 	question, err := cfg.db.GetQuestionFromQuestionNumber(c.Request.Context(), database.GetQuestionFromQuestionNumberParams{
-		ID:     c.Param("question_number"),
-		QuizID: quiz.ID,
+		QuestionNumber: int64(questionNumber),
+		QuizID:         quiz.ID,
 	})
 	if err == sql.ErrNoRows {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Question not found"})
@@ -297,9 +303,10 @@ func (cfg *apiConfig) handlerGetAllQuestionsInQuiz(c *gin.Context) {
 		return
 	}
 	type QuestionWithChoices struct {
-		ID           string `json:"id"`
-		QuestionText string `json:"question_text"`
-		Choices      []struct {
+		ID             string `json:"id"`
+		QuestionNumber int64  `json:"question_number"`
+		QuestionText   string `json:"question_text"`
+		Choices        []struct {
 			ChoiceText string `json:"choice_text"`
 			IsCorrect  bool   `json:"is_correct"`
 		} `json:"choices"`
@@ -307,8 +314,9 @@ func (cfg *apiConfig) handlerGetAllQuestionsInQuiz(c *gin.Context) {
 	var formattedQuestions []QuestionWithChoices
 	for _, q := range questions {
 		formattedQuestion := QuestionWithChoices{
-			ID:           q.ID,
-			QuestionText: q.QuestionText,
+			ID:             q.ID,
+			QuestionNumber: q.QuestionNumber,
+			QuestionText:   q.QuestionText,
 			Choices: []struct {
 				ChoiceText string `json:"choice_text"`
 				IsCorrect  bool   `json:"is_correct"`
